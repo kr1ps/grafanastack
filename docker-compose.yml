@@ -1,8 +1,12 @@
 version: "2"
 services:
   grafana:
-    image: grafana/grafana
+    image: bitnami/grafana
     container_name: grafana-kr1ps
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "bitnami"
+      GF_RENDERING_SERVER_URL: "http://grafana-image-renderer:8080/render"
+      GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
     restart: always
     ports:
       - 3000:3000
@@ -10,6 +14,8 @@ services:
       - monitoring
     volumes:
       - grafana-volume:/var/lib/grafana
+      - /home/docker/grafana/grafana.ini:/opt/bitnami/grafana/conf/grafana.ini
+      - /home/docker/grafana/data:/opt/bitnami/grafana/data
   influxdb:
     image: influxdb
     container_name: influxdb
@@ -20,6 +26,16 @@ services:
       - monitoring
     volumes:
       - influxdb-volume:/var/lib/influxdb
+  grafana-image-renderer:
+    image: bitnami/grafana-image-renderer:1
+    ports:
+      - '8080:8080'
+    environment:
+      HTTP_HOST: "0.0.0.0"
+      HTTP_PORT: "8080"
+      ENABLE_METRICS: 'true'
+    networks:
+      - monitoring
 networks:
   monitoring:
 volumes:
